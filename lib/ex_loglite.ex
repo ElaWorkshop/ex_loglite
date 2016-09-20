@@ -1,0 +1,2 @@
+defmodule ExLoglite do
+end
