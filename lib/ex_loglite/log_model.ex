@@ -45,10 +45,11 @@ defmodule ExLoglite.LogModel do
   defp build_text_message_part({timestamp, severity, module, channel, message}) do
     [
       << timestamp::64-little >>,
-      << severity::32-little, 0::32 >>,
+      << severity::32-little >>,
       build_binary_chars(module, 32),
       build_binary_chars(channel, 32),
-      build_binary_chars(message, 256)
+      build_binary_chars(message, 256),
+      << 0::32 >>
     ]
   end
 
