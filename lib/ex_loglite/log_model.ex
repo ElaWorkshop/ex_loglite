@@ -18,23 +18,19 @@ defmodule ExLoglite.LogModel do
       << 0::size(28)-unit(8) >>
     ]
   end
-
   def build_message(typ, msg) do
     [ build_type_part(typ) | build_text_message_part(msg) ]
   end
 
   @doc """
   Build binary in the same format as char array in C from a string.
-  Trim `str` if exceeds `max_len`, pad 0 if not long enough.
+  Trim `str` if exceeds `max_len`, pad 0 if not long enough. Count in `byte_size`
   """
+  def build_binary_chars(str, max_len) when byte_size(str) == max_len, do: << str::bytes >>
+  def build_binary_chars(str, max_len) when byte_size(str) > max_len, do: << binary_part(str, 0, max_len)::bytes >>
   def build_binary_chars(str, max_len) do
-    str_len = String.length(str)
-    if str_len > max_len do
-      << (String.slice(str, 0, max_len))::bytes >>
-    else
-      pad_len = max_len - str_len
-      << str::bytes, 0::size(pad_len)-unit(8) >>
-    end
+    pad_len = max_len - byte_size(str)
+    << str::bytes, 0::size(pad_len)-unit(8) >>
   end
 
   defp build_type_part(:simple), do: << 1::32-little, 0::32 >>

@@ -11,6 +11,12 @@ defmodule ExLoglite.LogModelTest do
     assert LogModel.build_binary_chars("dfa", 4) == <<"dfa", 0::8>>
   end
 
+  test "`build_binary_chars` should handle unicode correctly" do
+    assert LogModel.build_binary_chars("測試...", 1) == <<230>>
+
+    assert LogModel.build_binary_chars("測試", 7) == << "測試", 0 >>
+  end
+
   test "`build_message` for `:connection`" do
     raw_msg = LogModel.build_message(:connection, {12312, "dfa", "qqq"})
 
