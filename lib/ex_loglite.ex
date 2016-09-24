@@ -24,23 +24,37 @@ defmodule ExLoglite do
     {:ok, state}
   end
 
-  def handle_event({level, _gl, {Logger, msg, ts, metadata}}, %{socket: socket} = state) do
-    log_msg = LogModel.build_message(
-      :simple,
-      {
-        convert_timestamp(ts),
-        level_to_severity(level),
-        get_loglite_module(metadata),
-        get_loglite_channel(metadata),
-        msg
-      })
-
-    :gen_tcp.send(socket, log_msg)
+  def handle_event({lv, _gl, {Logger, msg, ts, md}}, %{socket: socket} = state) do
+    if byte_size(msg) <= 255 do
+      send_simple_msg(socket, lv, msg, ts, md)
+    else
+      send_large_msg(socket, lv, msg, ts, md)
+    end
 
     {:ok, state}
   end
 
   def handle_event(_, state), do: {:ok, state}
+
+  defp send_simple_msg(socket, lv, msg, ts, md) do
+    log_msg = LogModel.build_message(
+      :simple,
+      {
+        convert_timestamp(ts),
+        level_to_severity(lv),
+        get_loglite_module(md),
+        get_loglite_channel(md),
+        msg
+      })
+
+    :gen_tcp.send(socket, log_msg)
+  end
+
+  defp send_large_msg(socket, lv, msg, ts, md) do
+    msg_parts = split_large_msg(msg)
+
+    begin_send_multiparts(socket, lv, ts, md, msg_parts)
+  end
 
   defp level_to_severity(:debug), do: 0
   defp level_to_severity(:info), do: 1
@@ -68,6 +82,67 @@ defmodule ExLoglite do
     metadata
     |> Keyword.get(:module)
     |> to_string()
+  end
+
+  defp split_large_msg(msg), do: divide_bytes(msg, 255, []) |> Enum.reverse
+
+  defp divide_bytes(bytes, div_len, acc) when byte_size(bytes) < div_len do
+    [bytes | acc]
+  end
+  defp divide_bytes(bytes, div_len, acc) do
+    size = byte_size(bytes)
+    this_part = binary_part(bytes, 0, div_len)
+    left_bytes = binary_part(bytes, div_len, size - div_len)
+
+    divide_bytes(left_bytes, div_len, [this_part | acc])
+  end
+
+  defp begin_send_multiparts(socket, lv, ts, md, [first_part | msg_parts]) do
+    first_msg = LogModel.build_message(
+      :large,
+      {
+        convert_timestamp(ts),
+        level_to_severity(lv),
+        get_loglite_module(md),
+        get_loglite_channel(md),
+        first_part
+      }
+    )
+
+    :gen_tcp.send(socket, first_msg)
+
+    send_multiparts_cont(socket, lv, ts, md, msg_parts)
+  end
+
+  defp send_multiparts_cont(socket, lv, ts, md, [last_part]) do
+    last_msg = LogModel.build_message(
+      :continuation_end,
+      {
+        convert_timestamp(ts),
+        level_to_severity(lv),
+        get_loglite_module(md),
+        get_loglite_channel(md),
+        last_part
+      }
+    )
+
+    :gen_tcp.send(socket, last_msg)
+  end
+  defp send_multiparts_cont(socket, lv, ts, md, [this_part | msg_parts]) do
+    this_msg = LogModel.build_message(
+      :continuation,
+      {
+        convert_timestamp(ts),
+        level_to_severity(lv),
+        get_loglite_module(md),
+        get_loglite_channel(md),
+        this_part
+      }
+    )
+
+    :gen_tcp.send(socket, this_msg)
+
+    send_multiparts_cont(socket, lv, ts, md, msg_parts)
   end
 
 end
