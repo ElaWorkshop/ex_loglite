@@ -1,4 +1,4 @@
-defmodule ExLoglite.LogModel do
+defmodule ExLogLite.LogModel do
   @moduledoc """
   Build log messages according to LogLite format, in binary.
   """

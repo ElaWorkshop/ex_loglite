@@ -1,4 +1,4 @@
-defmodule ExLoglite.Mixfile do
+defmodule ExLogLite.Mixfile do
   use Mix.Project
 
   def project do
@@ -10,11 +10,7 @@ defmodule ExLoglite.Mixfile do
      deps: deps()]
   end
 
-  def application do
-    [applications: [:logger]]
-  end
+  def application, do: []
 
-  defp deps do
-    []
-  end
+  defp deps, do: []
 end

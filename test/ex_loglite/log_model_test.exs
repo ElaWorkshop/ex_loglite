@@ -1,7 +1,7 @@
-defmodule ExLoglite.LogModelTest do
+defmodule ExLogLite.LogModelTest do
   use ExUnit.Case
 
-  alias ExLoglite.LogModel
+  alias ExLogLite.LogModel
 
   test "`build_binary_chars` trim longer string" do
     assert LogModel.build_binary_chars("dfa", 2) == <<"df">>

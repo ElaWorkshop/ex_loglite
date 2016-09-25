@@ -1,9 +1,9 @@
-defmodule ExLoglite do
+defmodule ExLogLite do
   @moduledoc false
 
   use GenEvent
 
-  alias ExLoglite.LogModel
+  alias ExLogLite.LogModel
 
   @port 0xCC9
 
