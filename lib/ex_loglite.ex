@@ -24,7 +24,8 @@ defmodule ExLogLite do
     {:ok, state}
   end
 
-  def handle_event({lv, _gl, {Logger, msg, ts, md}}, %{socket: socket} = state) do
+  def handle_event({lv, _gl, {Logger, raw_msg, ts, md}}, %{socket: socket} = state) do
+    msg = to_string(raw_msg)
     if byte_size(msg) <= 255 do
       send_simple_msg(socket, lv, msg, ts, md)
     else
