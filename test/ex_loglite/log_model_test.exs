@@ -28,7 +28,7 @@ defmodule ExLogLite.LogModelTest do
   end
 end
 
-defmodule ExLogLite.LogModeEQC do
+defmodule ExLogLite.LogModelEQC do
   use ExUnit.Case
   use EQC.ExUnit
 
