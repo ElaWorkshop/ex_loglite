@@ -26,5 +26,17 @@ defmodule ExLogLite.LogModelTest do
 
     assert byte_size(bitstr) == 344
   end
+end
 
+defmodule ExLogLite.LogModeEQC do
+  use ExUnit.Case
+  use EQC.ExUnit
+
+  alias ExLogLite.LogModel
+
+  property "`build_binary_chars` always return string of a specific length" do
+    forall {s, n} <- {utf8(), choose(1, 1000)} do
+      ensure byte_size(LogModel.build_binary_chars(s, n)) == n
+    end
+  end
 end

@@ -14,7 +14,12 @@ defmodule ExLogLite.Mixfile do
 
   def application, do: []
 
-  defp deps, do: [{:ex_doc, "~> 0.13", only: :dev}]
+  defp deps do
+    [
+      {:ex_doc, "~> 0.13", only: :dev},
+      {:eqc_ex, "~> 1.4", only: :test},
+    ]
+  end
 
   defp description, do: "An Elixir Logger Backend for EVE LogLite."
 
